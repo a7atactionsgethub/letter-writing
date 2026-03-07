@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📝 Indian Letter Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <h1>🇮🇳 Indian‑Style Letter Generator</h1>
+        <p>Fill in the details below. Your letter will follow Indian formal format.</p>
+
+        <div class="form-grid">
+            <!-- Sender details -->
+            <div class="full-width">
+                <label>Your Full Name *</label>
+                <input type="text" id="senderName" placeholder="Rajesh Kumar">
+            </div>
+            <div class="full-width">
+                <label>Your Address *</label>
+                <textarea id="senderAddress" rows="2" placeholder="House No., Street, City, PIN"></textarea>
+            </div>
+
+            <!-- Recipient details -->
+            <div class="full-width">
+                <label>Recipient Name *</label>
+                <input type="text" id="recipientName" placeholder="Mr. Sharma">
+            </div>
+            <div class="full-width">
+                <label>Recipient Address *</label>
+                <textarea id="recipientAddress" rows="2" placeholder="Office/School, Address"></textarea>
+            </div>
+
+            <!-- Date and letter type -->
+            <div>
+                <label>Date *</label>
+                <input type="date" id="letterDate">
+            </div>
+            <div>
+                <label>Letter Type *</label>
+                <select id="letterType">
+                    <option value="apology">Apology</option>
+                    <option value="request">Request</option>
+                    <option value="complaint">Complaint</option>
+                    <option value="thanks">Thank You</option>
+                </select>
+            </div>
+
+            <!-- Subject / Reason -->
+            <div class="full-width">
+                <label>Subject / Reason *</label>
+                <input type="text" id="reason" placeholder="e.g., Not wearing shoes in school">
+            </div>
+
+            <!-- Additional details -->
+            <div class="full-width">
+                <label>Additional details (optional)</label>
+                <textarea id="details" rows="3" placeholder="Explain briefly..."></textarea>
+            </div>
+        </div>
+
+        <button id="generateBtn">📄 Generate Letter</button>
+
+        <div>
+            <label>Your letter:</label>
+            <div class="output" id="letterOutput">Click "Generate" to see your letter here.</div>
+            <div class="footer">
+                <button class="copy-btn" id="copyBtn">📋 Copy to clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
