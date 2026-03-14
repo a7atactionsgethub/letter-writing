@@ -378,19 +378,39 @@ body {
 
 .split-input { display: grid; grid-template-columns: 140px 1fr; gap: 0.7rem; }
 
-input, textarea {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border-glass);
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
+input, textarea, .custom-select-trigger {
+  width: 100%; /* Ensure full width on all devices */
+  background-color: rgba(15, 17, 26, 0.8) !important;
+  border: 1px solid var(--border-bright) !important;
+  border-radius: 12px;
+  padding: 0.8rem 1.25rem;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-family: inherit;
   transition: all 0.3s ease;
+  height: 52px;
+  box-sizing: border-box;
+  appearance: none;
+  color-scheme: dark;
 }
 
-input:focus, textarea:focus {
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+}
+
+input {
+  text-transform: capitalize; /* Force professional casing in UI */
+}
+
+textarea {
+  height: auto;
+  min-height: 100px;
+}
+
+input:focus, textarea:focus, .custom-select-trigger.active {
   outline: none;
-  background: rgba(0,0,0,0.4);
+  background: rgba(15, 17, 26, 0.8) !important;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1);
 }
@@ -449,32 +469,25 @@ input:focus, textarea:focus {
 }
 
 .custom-select-trigger {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border-glass);
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
-  min-height: 52px;
   cursor: pointer;
-  transition: all 0.3s ease;
   user-select: none;
+  justify-content: space-between;
 }
 
-.custom-select-trigger:hover, .custom-select-trigger.active {
-  background: rgba(255, 255, 255, 0.05);
+.custom-select-trigger:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
   border-color: var(--accent-primary);
 }
 
 .selected-value {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #ffffff;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   padding-right: 1rem;
+  text-transform: capitalize;
 }
 
 .chevron-select {
@@ -817,7 +830,7 @@ input:focus, textarea:focus {
 
 /* Mobile Spicy */
 @media (max-width: 768px) {
-  .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .grid-3, .grid-2 { grid-template-columns: 1fr; gap: 1.25rem; }
   .full-width { grid-column: auto; }
   .form-section { padding: 1.5rem; border-radius: 24px; }
   .canvas { padding: 1rem; border-radius: 20px; }
