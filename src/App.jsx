@@ -39,7 +39,7 @@ const LogoutIcon = () => (
 );
 
 const InstagramIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
@@ -181,42 +181,39 @@ function App() {
   if (loading) return (
     <div className="app-loading">
       <div className="loader"></div>
-      <p>Syncing your profile...</p>
+      <p>Loading Workspace...</p>
     </div>
   );
 
   if (!user) return <Auth isLogin={isLogin} onToggleMode={() => setIsLogin(!isLogin)} />;
 
   return (
-    <div className="app-shell">
-      <header className="main-header">
-        <div className="header-content">
-          <div className="brand-logo">
-            <span className="logo-box">📝</span>
-            <div>
-              <h1>Letter Generator Pro</h1>
-              <p className="sub-branding">Professional Dashboard</p>
-            </div>
+    <div className="app-root">
+      <header className="navbar">
+        <div className="navbar-inner">
+          <div className="navbar-brand">
+            <div className="brand-dot"></div>
+            <h1>Letter Generator Pro</h1>
           </div>
           
-          <div className="profile-area" ref={menuRef}>
-            <button className={`profile-trigger ${showUserMenu ? 'active' : ''}`} onClick={() => setShowUserMenu(!showUserMenu)}>
-              <div className="avatar-dot">{(user.displayName || user.email)[0].toUpperCase()}</div>
-              <span className="profile-name">{user.displayName || user.email.split('@')[0]}</span>
-              <svg className={`chevron-icon ${showUserMenu ? 'up' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div className="navbar-actions" ref={menuRef}>
+            <button className={`profile-pill ${showUserMenu ? 'active' : ''}`} onClick={() => setShowUserMenu(!showUserMenu)}>
+              <div className="profile-img">{(user.displayName || user.email)[0].toUpperCase()}</div>
+              <span className="profile-text">{user.displayName || user.email.split('@')[0]}</span>
+              <svg className={`chevron-svg ${showUserMenu ? 'rotate' : ''}`} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
             
             {showUserMenu && (
-              <div className="dropdown-panel">
-                <div className="panel-user-info">
-                  <div className="avatar-large-circle">{(user.displayName || user.email)[0].toUpperCase()}</div>
-                  <div className="user-meta">
-                    <p className="meta-name">{user.displayName || user.email.split('@')[0]}</p>
-                    <p className="meta-email">{user.email}</p>
+              <div className="popover-menu">
+                <div className="popover-user">
+                  <div className="popover-avatar">{(user.displayName || user.email)[0].toUpperCase()}</div>
+                  <div className="popover-meta">
+                    <p className="p-name">{user.displayName || user.email.split('@')[0]}</p>
+                    <p className="p-email">{user.email}</p>
                   </div>
                 </div>
-                <div className="panel-actions-list">
-                  <button className="panel-btn logout-danger" onClick={() => signOut(auth)}>
+                <div className="popover-links">
+                  <button className="popover-btn logout-link" onClick={() => signOut(auth)}>
                     <LogoutIcon /> Sign Out
                   </button>
                 </div>
@@ -226,52 +223,52 @@ function App() {
         </div>
       </header>
 
-      {/* Global Tab Switcher */}
-      <nav className="tab-navigation">
-        <div className="tab-switcher">
+      {/* Centered Tab Switcher */}
+      <div className="view-selector-container">
+        <div className="view-selector">
           <button 
-            className={`view-tab ${activeTab === 'edit' ? 'active' : ''}`} 
+            className={`selector-tab ${activeTab === 'edit' ? 'active' : ''}`} 
             onClick={() => setActiveTab('edit')}
           >
-            <span>Draft Editor</span>
+            Edit Mode
           </button>
           <button 
-            className={`view-tab ${activeTab === 'preview' ? 'active' : ''}`} 
+            className={`selector-tab ${activeTab === 'preview' ? 'active' : ''}`} 
             onClick={() => {
               generateLetter();
               setActiveTab('preview');
             }}
             disabled={!generatedLetter}
           >
-            <span>Live Preview</span>
+            Live Preview
           </button>
         </div>
-      </nav>
+      </div>
 
-      <main className="tab-content-area">
+      <main className="workspace">
         {activeTab === 'edit' ? (
-          <div className="editor-view animation-fade">
-            <section className="config-card">
-              <div className="card-header">
-                <h3>1. Configuration</h3>
-                <p>Define the type and purpose of your letter.</p>
+          <div className="editor-workspace fade-in">
+            <section className="form-section">
+              <div className="section-title">
+                <h2>Configuration</h2>
+                <p>Define your letter's context</p>
               </div>
-              <div className="config-grid">
-                <div className="field-group">
-                  <label>Letter Category</label>
+              <div className="grid-3">
+                <div className="control-group">
+                  <label>Category</label>
                   <select id="letterType" value={formData.letterType} onChange={handleChange}>
-                    <option value="apology">Apology Letter</option>
-                    <option value="request">Formal Request</option>
-                    <option value="complaint">Complaint Letter</option>
-                    <option value="thanks">Thank You Note</option>
+                    <option value="apology">Apology</option>
+                    <option value="request">Request</option>
+                    <option value="complaint">Complaint</option>
+                    <option value="thanks">Thanks</option>
                   </select>
                 </div>
-                <div className="field-group">
+                <div className="control-group">
                   <label>Date</label>
                   <input type="date" id="letterDate" value={formData.letterDate} onChange={handleChange} />
                 </div>
-                <div className="field-group">
-                  <label>Subject / Reason</label>
+                <div className="control-group">
+                  <label>Subject</label>
                   <select id="reason" value={formData.reason} onChange={handleChange}>
                     {SUBJECT_OPTIONS[formData.letterType].map(opt => (
                       <option key={opt} value={opt}>{opt}</option>
@@ -280,58 +277,58 @@ function App() {
                 </div>
               </div>
               {formData.reason === 'Custom...' && (
-                <div className="field-group mt-1">
+                <div className="control-group mt-1">
                   <input
                     type="text"
                     id="customReason"
-                    placeholder="Enter custom subject..."
+                    placeholder="Type your own subject..."
                     onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
                   />
                 </div>
               )}
             </section>
 
-            <section className="config-card">
-              <div className="card-header">
-                <h3>2. Recipient & Sender</h3>
-                <p>Provide the specific details for the letter body.</p>
+            <section className="form-section">
+              <div className="section-title">
+                <h2>Letter Details</h2>
+                <p>Add specific information for the recipient</p>
               </div>
-              <div className="editor-grid">
-                <div className="field-group">
-                  <label>Your Full Name</label>
+              <div className="grid-2">
+                <div className="control-group">
+                  <label>Your Name</label>
                   <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="Rajesh Kumar" />
                 </div>
-                <div className="field-group">
-                  <label>Recipient Title & Name</label>
-                  <div className="dual-input">
-                    <select className="title-select" id="recipientTitle" value={formData.recipientTitle} onChange={handleChange}>
+                <div className="control-group">
+                  <label>Recipient Name</label>
+                  <div className="split-input">
+                    <select className="tiny-select" id="recipientTitle" value={formData.recipientTitle} onChange={handleChange}>
                       {TITLES.map(title => <option key={title} value={title}>{title}</option>)}
                     </select>
-                    <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="John Doe" />
+                    <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="Full Name" />
                   </div>
                 </div>
-                <div className="field-group">
+                <div className="control-group">
                   <label>Your Address</label>
-                  <textarea id="senderAddress" rows="2" value={formData.senderAddress} onChange={handleChange} placeholder="House No., Street, City, PIN" />
+                  <textarea id="senderAddress" rows="2" value={formData.senderAddress} onChange={handleChange} placeholder="Your Address" />
                 </div>
-                <div className="field-group">
+                <div className="control-group">
                   <label>Recipient Address</label>
-                  <textarea id="recipientAddress" rows="2" value={formData.recipientAddress} onChange={handleChange} placeholder="Office/School Name, Address" />
+                  <textarea id="recipientAddress" rows="2" value={formData.recipientAddress} onChange={handleChange} placeholder="Recipient's Address" />
                 </div>
-                <div className="field-group full-span">
-                  <label>Personalized Message / Context (Optional)</label>
-                  <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Add specific context to make your letter unique..." />
+                <div className="control-group full-width">
+                  <label>Additional Context (Optional)</label>
+                  <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Any specific details to include..." />
                 </div>
               </div>
-              <div className="card-actions">
-                <button className="main-btn primary-glow" onClick={() => {
+              <div className="form-actions">
+                <button className="btn-solid" onClick={() => {
                   generateLetter();
                   setActiveTab('preview');
                 }}>
-                  View Live Preview
+                  Generate & Preview
                 </button>
                 {generatedLetter && (
-                  <button className="main-btn secondary-dim" onClick={saveLetter}>
+                  <button className="btn-ghost" onClick={saveLetter}>
                     <SaveIcon /> Cloud Save
                   </button>
                 )}
@@ -339,18 +336,19 @@ function App() {
             </section>
 
             {savedLetters.length > 0 && (
-              <section className="history-section config-card">
-                <div className="card-header">
-                  <h3>Cloud History</h3>
+              <section className="form-section cloud-section">
+                <div className="section-title">
+                  <h2>Saved Drafts</h2>
                 </div>
-                <div className="history-list">
+                <div className="draft-grid">
                   {savedLetters.map(letter => (
-                    <div key={letter.id} className="letter-card-item" onClick={() => loadLetter(letter)}>
-                      <div className="item-meta">
-                        <span className="type-badge">{letter.letterType}</span>
-                        <span className="date-text">{formatDate(letter.letterDate)}</span>
+                    <div key={letter.id} className="draft-card" onClick={() => loadLetter(letter)}>
+                      <div className="draft-meta">
+                        <span className="draft-tag">{letter.letterType}</span>
+                        <span className="draft-date">{formatDate(letter.letterDate)}</span>
                       </div>
-                      <h4 className="item-title">{letter.reason}</h4>
+                      <h3>{letter.reason}</h3>
+                      <p>{letter.recipientName}</p>
                     </div>
                   ))}
                 </div>
@@ -358,24 +356,24 @@ function App() {
             )}
           </div>
         ) : (
-          <div className="preview-view animation-fade">
-            <div className="preview-sticky-header">
-              <div className="preview-info">
-                <h3>Draft Preview</h3>
-                <p>Verify your letter before formal submission.</p>
+          <div className="preview-workspace fade-in">
+            <div className="preview-toolbar">
+              <div className="toolbar-info">
+                <h2>Document Preview</h2>
+                <p>Professional formal formatting applied</p>
               </div>
-              <button className="copy-action-btn" onClick={() => {
+              <button className="btn-action" onClick={() => {
                 navigator.clipboard.writeText(generatedLetter);
-                alert('Copied!');
+                alert('Copied to clipboard!');
               }}>
                 <CopyIcon /> Copy Document
               </button>
             </div>
             
-            <div className="document-container">
-              <div className="document-sheet">
-                <div className="paper-grain"></div>
-                <div className="letter-text-body">
+            <div className="canvas">
+              <div className="sheet">
+                <div className="sheet-texture"></div>
+                <div className="sheet-content">
                   {generatedLetter}
                 </div>
               </div>
@@ -384,14 +382,14 @@ function App() {
         )}
       </main>
 
-      <footer className="footer-professional">
-        <div className="footer-inner">
-          <div className="footer-branding">
+      <footer className="compact-footer">
+        <div className="footer-content-bar">
+          <div className="footer-left-info">
             <p>© 2026 Letter Generator Pro</p>
-            <p className="design-credit">Designed & Developed by <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer">A7 Visuals</a></p>
+            <p className="credit-text">Designed by <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer">A7 Visuals</a></p>
           </div>
-          <div className="footer-social">
-            <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer" className="social-pill">
+          <div className="footer-right-actions">
+            <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer" className="insta-link">
               <InstagramIcon />
               <span>@a7_visuals</span>
             </a>
