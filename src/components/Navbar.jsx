@@ -1,4 +1,4 @@
-import { SettingsIcon, LogoutIcon } from './Icons';
+import { SettingsIcon, LogoutIcon, SunIcon, MoonIcon } from './Icons';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -11,7 +11,9 @@ export const Navbar = ({
   showSettings, 
   setShowSettings, 
   menuRef, 
-  handleProfileUpdate 
+  handleProfileUpdate,
+  theme,
+  toggleTheme
 }) => {
   return (
     <header className="navbar">
@@ -22,6 +24,10 @@ export const Navbar = ({
         </div>
         
         <div className="navbar-actions" ref={menuRef}>
+          <button className="theme-toggle" onClick={toggleTheme}>
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </button>
+
           <button className={`profile-pill ${showUserMenu ? 'active' : ''}`} onClick={() => setShowUserMenu(!showUserMenu)}>
             <div className="profile-img">{(user.displayName || user.email)[0].toUpperCase()}</div>
             <span className="profile-text">{profile.preferredName || user.displayName || user.email.split('@')[0]}</span>

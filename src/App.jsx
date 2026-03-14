@@ -28,6 +28,13 @@ function App() {
   const [profile, setProfile] = useState({ preferredName: '' });
   const [loading, setLoading] = useState(true);
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('app-theme') || 'dark';
+    } catch (e) {
+      return 'dark';
+    }
+  });
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState('edit'); 
@@ -47,40 +54,49 @@ function App() {
   const [generatedLetter, setGeneratedLetter] = useState('');
   const menuRef = useRef(null);
 
+  // Theme Effect
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
   // Auth & Profile Listener
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         const profileRef = doc(db, 'profiles', currentUser.uid);
-        const unsubscribeProfile = onSnapshot(profileRef, (snapshot) => {
-          if (snapshot.exists()) {
-            const profileData = snapshot.data();
-            setProfile(profileData);
+        const unsubProfile = onSnapshot(profileRef, (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            setProfile(data);
             setFormData(prev => {
               if (!prev.senderName) {
-                return { ...prev, senderName: profileData.preferredName || currentUser.displayName || currentUser.email.split('@')[0] };
+                return { ...prev, senderName: data.preferredName || currentUser.displayName || currentUser.email.split('@')[0] };
               }
               return prev;
             });
           } else {
-            const fallbackName = currentUser.displayName || currentUser.email.split('@')[0];
-            setFormData(prev => !prev.senderName ? { ...prev, senderName: fallbackName } : prev);
+            const fallback = currentUser.displayName || currentUser.email.split('@')[0];
+            setFormData(prev => !prev.senderName ? { ...prev, senderName: fallback } : prev);
           }
         });
         setLoading(false);
-        return () => unsubscribeProfile();
+        return () => unsubProfile();
       } else {
         setProfile({ preferredName: '' });
         setLoading(false);
       }
     });
-    return () => unsubscribeAuth();
+    return () => unsubAuth();
   }, []);
 
+  // UI Handlers
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setShowUserMenu(false);
         setShowSettings(false);
       }
@@ -89,6 +105,7 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Data Persistence
   useEffect(() => {
     if (!user) {
       setSavedLetters([]);
@@ -99,18 +116,18 @@ function App() {
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setSavedLetters(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    const unsub = onSnapshot(q, (snap) => {
+      setSavedLetters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, [user]);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData(prev => {
-      const newData = { ...prev, [id]: value };
-      if (id === 'letterType') newData.reason = SUBJECT_OPTIONS[value][0];
-      return newData;
+      const next = { ...prev, [id]: value };
+      if (id === 'letterType') next.reason = SUBJECT_OPTIONS[value][0];
+      return next;
     });
   };
 
@@ -122,17 +139,11 @@ function App() {
         preferredName: profile.preferredName,
         updatedAt: serverTimestamp()
       }, { merge: true });
-      alert('Profile updated successfully!');
+      alert('Profile updated!');
       setShowSettings(false);
     } catch (err) {
-      alert('Error updating profile: ' + err.message);
+      alert('Error: ' + err.message);
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const parts = dateString.split('-');
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   const generateLetter = useCallback(() => {
@@ -142,9 +153,10 @@ function App() {
       return false;
     }
 
-    let template = templates[letterType] || templates.apology;
-    const formattedDate = formatDate(letterDate);
-    const detailsText = details ? ' ' + details : '';
+    const template = templates[letterType] || templates.apology;
+    const parts = letterDate.split('-');
+    const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    const detailsVal = details ? ' ' + details : '';
     const fullRecipient = `${recipientTitle} ${recipientName}`.trim();
 
     let letter = template
@@ -154,7 +166,7 @@ function App() {
       .replace(/{recipientAddress}/g, recipientAddress)
       .replace(/{date}/g, formattedDate)
       .replace(/{reason}/g, reason)
-      .replace(/{details}/g, detailsText);
+      .replace(/{details}/g, detailsVal);
 
     letter = letter.replace(/\n{3,}/g, '\n\n');
     setGeneratedLetter(letter);
@@ -166,7 +178,7 @@ function App() {
   }, [generateLetter]);
 
   const saveLetter = async () => {
-    if (!user || !generatedLetter) return alert('Please fill in all details first!');
+    if (!user || !generatedLetter) return alert('Fill details first!');
     try {
       await addDoc(collection(db, 'letters'), {
         ...formData,
@@ -174,9 +186,9 @@ function App() {
         userId: user.uid,
         createdAt: serverTimestamp()
       });
-      alert('Letter saved successfully!');
+      alert('Saved!');
     } catch (err) {
-      alert('Could not save letter. Ensure Firestore is enabled.');
+      alert('Error saving.');
     }
   };
 
@@ -189,12 +201,11 @@ function App() {
   };
 
   const handleManualGenerate = () => {
-    const success = generateLetter();
-    if (!success) {
-      alert('Missing Information: Please fill in all fields to generate a preview.');
-    } else {
+    if (generateLetter()) {
       setActiveTab('preview');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      alert('Please fill field.');
     }
   };
 
@@ -229,20 +240,16 @@ function App() {
         setShowSettings={setShowSettings}
         menuRef={menuRef}
         handleProfileUpdate={handleProfileUpdate}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       <div className="view-selector-container">
         <div className="view-selector">
-          <button 
-            className={`selector-tab ${activeTab === 'edit' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('edit')}
-          >
+          <button className={`selector-tab ${activeTab === 'edit' ? 'active' : ''}`} onClick={() => setActiveTab('edit')}>
             Edit Mode
           </button>
-          <button 
-            className={`selector-tab ${activeTab === 'preview' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('preview')}
-          >
+          <button className={`selector-tab ${activeTab === 'preview' ? 'active' : ''}`} onClick={() => setActiveTab('preview')}>
             Live Preview
           </button>
         </div>
@@ -259,13 +266,10 @@ function App() {
             saveLetter={saveLetter}
             savedLetters={savedLetters}
             loadLetter={loadLetter}
-            formatDate={formatDate}
+            formatDate={(s) => s.split('-').reverse().join('/')}
           />
         ) : (
-          <PreviewWorkspace 
-            generatedLetter={generatedLetter}
-            setActiveTab={setActiveTab}
-          />
+          <PreviewWorkspace generatedLetter={generatedLetter} setActiveTab={setActiveTab} />
         )}
       </main>
 
