@@ -200,6 +200,8 @@ function App() {
 
   if (loading) return (
     <div className="app-loading">
+      <div className="app-bg-mesh"></div>
+      <div className="glow-orb" style={{ top: '10%', left: '10%' }}></div>
       <div className="loader"></div>
       <p>Loading Workspace...</p>
     </div>
