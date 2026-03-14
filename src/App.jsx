@@ -46,6 +46,39 @@ const InstagramIcon = () => (
   </svg>
 );
 
+const SUBJECT_OPTIONS = {
+  apology: [
+    "Late arrival to office/school",
+    "Missing an important deadline",
+    "Inappropriate behavior",
+    "Errors in submitted work",
+    "Custom..."
+  ],
+  request: [
+    "Leave of absence application",
+    "Request for recommendation letter",
+    "Meeting appointment request",
+    "Resource/Equipment request",
+    "Custom..."
+  ],
+  complaint: [
+    "Service delay complaint",
+    "Poor quality of products",
+    "Inadequate facilities",
+    "Staff behavior issue",
+    "Custom..."
+  ],
+  thanks: [
+    "Appreciation for guidance",
+    "Thank you for the opportunity",
+    "Acknowledgment of support",
+    "Personal thank you note",
+    "Custom..."
+  ]
+};
+
+const TITLES = ["Mr.", "Ms.", "Dr.", "Prof.", "The Principal", "The Manager", "Custom..."];
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,11 +88,12 @@ function App() {
   const [formData, setFormData] = useState({
     senderName: '',
     senderAddress: '',
+    recipientTitle: 'Mr.',
     recipientName: '',
     recipientAddress: '',
     letterDate: new Date().toISOString().split('T')[0],
     letterType: 'apology',
-    reason: '',
+    reason: 'Late arrival to office/school',
     details: ''
   });
 
@@ -105,7 +139,14 @@ function App() {
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    setFormData(prev => {
+        const newData = { ...prev, [id]: value };
+        // If letter type changes, reset the reason to the first common one
+        if (id === 'letterType') {
+            newData.reason = SUBJECT_OPTIONS[value][0];
+        }
+        return newData;
+    });
   };
 
   const formatDate = (dateString) => {
@@ -115,17 +156,18 @@ function App() {
   };
 
   const generateLetter = useCallback(() => {
-    const { senderName, senderAddress, recipientName, recipientAddress, letterDate, letterType, reason, details } = formData;
+    const { senderName, senderAddress, recipientTitle, recipientName, recipientAddress, letterDate, letterType, reason, details } = formData;
     if (!senderName || !senderAddress || !recipientName || !recipientAddress || !reason) return;
 
     let template = templates[letterType] || templates.apology;
     const formattedDate = formatDate(letterDate);
     const detailsText = details ? ' ' + details : '';
+    const fullRecipient = `${recipientTitle} ${recipientName}`.trim();
 
     let letter = template
       .replace(/{senderName}/g, senderName)
       .replace(/{senderAddress}/g, senderAddress)
-      .replace(/{recipientName}/g, recipientName)
+      .replace(/{recipientName}/g, fullRecipient)
       .replace(/{recipientAddress}/g, recipientAddress)
       .replace(/{date}/g, formattedDate)
       .replace(/{reason}/g, reason)
@@ -156,7 +198,7 @@ function App() {
 
   const loadLetter = (letter) => {
     const { content, createdAt, userId, id, ...rest } = letter;
-    setFormData(rest);
+    setFormData(prev => ({...prev, ...rest}));
     setGeneratedLetter(content);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -176,13 +218,13 @@ function App() {
         <div className="logo-section">
           <span className="logo-icon">📝</span>
           <div>
-            <h1>Indian Letter Gen</h1>
+            <h1>Letter Generator Pro</h1>
             <p className="tagline">Professional correspondence, simplified.</p>
           </div>
         </div>
         
         <div className="header-right" ref={menuRef}>
-          <button className="user-btn" onClick={() => setShowUserMenu(!showUserMenu)}>
+          <button className={`user-btn ${showUserMenu ? 'active' : ''}`} onClick={() => setShowUserMenu(!showUserMenu)}>
             <div className="avatar-mini">{(user.displayName || user.email)[0].toUpperCase()}</div>
             <span className="user-label">{user.displayName || user.email.split('@')[0]}</span>
             <svg className={`chevron ${showUserMenu ? 'up' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -190,10 +232,20 @@ function App() {
           
           {showUserMenu && (
             <div className="menu-dropdown">
-              <div className="dropdown-info">{user.email}</div>
-              <button className="dropdown-btn logout" onClick={() => signOut(auth)}>
-                <LogoutIcon /> Sign Out
-              </button>
+              <div className="dropdown-header">
+                <div className="user-info">
+                   <div className="avatar-large">{(user.displayName || user.email)[0].toUpperCase()}</div>
+                   <div className="user-details">
+                      <p className="user-name-text">{user.displayName || user.email.split('@')[0]}</p>
+                      <p className="user-email-text">{user.email}</p>
+                   </div>
+                </div>
+              </div>
+              <div className="dropdown-links">
+                <button className="dropdown-btn logout" onClick={() => signOut(auth)}>
+                  <LogoutIcon /> Sign Out
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -203,8 +255,8 @@ function App() {
         {/* Section 1: Draft Details (Configuration) */}
         <section className="wizard-card">
           <div className="section-header">
-            <h2>1. Draft Details</h2>
-            <p>Set up the core configuration of your letter.</p>
+            <h2>1. Configuration</h2>
+            <p>Define the type and purpose of your letter.</p>
           </div>
           <div className="wizard-grid-3">
             <div className="input-group">
@@ -221,17 +273,31 @@ function App() {
               <input type="date" id="letterDate" value={formData.letterDate} onChange={handleChange} />
             </div>
             <div className="input-group">
-              <label>Subject / Reason</label>
-              <input type="text" id="reason" value={formData.reason} onChange={handleChange} placeholder="e.g. sick leave / delay" />
+                <label>Subject / Reason</label>
+                <select id="reason" value={formData.reason} onChange={handleChange}>
+                    {SUBJECT_OPTIONS[formData.letterType].map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                </select>
             </div>
           </div>
+          {formData.reason === 'Custom...' && (
+              <div className="input-group mt-1">
+                  <input 
+                    type="text" 
+                    id="customReason" 
+                    placeholder="Type your custom subject here..." 
+                    onChange={(e) => setFormData(prev => ({...prev, reason: e.target.value}))}
+                  />
+              </div>
+          )}
         </section>
 
         {/* Section 2: Editor (Content Details) */}
         <section className="wizard-card">
           <div className="section-header">
-            <h2>2. Editor</h2>
-            <p>Refine the sender and recipient information.</p>
+            <h2>2. Recipient & Sender</h2>
+            <p>Provide the specific details for the letter body.</p>
           </div>
           <div className="wizard-grid-2">
             <div className="input-group">
@@ -239,8 +305,13 @@ function App() {
               <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="Rajesh Kumar" />
             </div>
             <div className="input-group">
-              <label>Recipient Name / Title</label>
-              <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="Mr. Sharma / The Principal" />
+              <label>Recipient Title & Name</label>
+              <div className="title-name-group">
+                  <select id="recipientTitle" value={formData.recipientTitle} onChange={handleChange}>
+                      {TITLES.map(title => <option key={title} value={title}>{title}</option>)}
+                  </select>
+                  <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="John Doe" />
+              </div>
             </div>
             <div className="input-group">
               <label>Your Address</label>
@@ -251,12 +322,12 @@ function App() {
               <textarea id="recipientAddress" rows="2" value={formData.recipientAddress} onChange={handleChange} placeholder="Office/School Name, Address" />
             </div>
             <div className="input-group full-width">
-              <label>Additional Details (Personalize Tone)</label>
-              <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Add specific context here..." />
+              <label>Personalized Message / Context (Optional)</label>
+              <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Add specific context to make your letter unique..." />
             </div>
           </div>
           <div className="action-row">
-            <button className="btn-primary" onClick={generateLetter}>✨ Generate Letter</button>
+            <button className="btn-primary" onClick={generateLetter}>✨ Update Preview</button>
             {generatedLetter && (
               <button className="btn-secondary" onClick={saveLetter}><SaveIcon /> Save to Cloud</button>
             )}
@@ -267,8 +338,8 @@ function App() {
         {generatedLetter && (
           <section className="preview-area">
             <div className="area-header">
-              <h2>3. Preview</h2>
-              <button className="copy-pill" onClick={() => { navigator.clipboard.writeText(generatedLetter); alert('Copied!'); }}>
+              <h2>3. Live Preview</h2>
+              <button className="copy-pill" onClick={() => { navigator.clipboard.writeText(generatedLetter); alert('Copied to clipboard!'); }}>
                 <CopyIcon /> Copy Text
               </button>
             </div>
@@ -287,8 +358,8 @@ function App() {
         {savedLetters.length > 0 && (
           <section className="wizard-card library-card">
             <div className="section-header">
-              <h2>Cloud Library</h2>
-              <p>Your previous drafts, saved securely.</p>
+              <h2>Cloud History</h2>
+              <p>Quickly access your previously generated letters.</p>
             </div>
             <div className="library-flex">
               {savedLetters.map(letter => (
@@ -305,9 +376,9 @@ function App() {
 
       <footer className="professional-footer">
         <div className="footer-wrap">
-          <p>© 2026 Indian Letter Gen • Built with ❤️ for Professionals</p>
+          <p>© 2026 Letter Generator Pro • Secure Cloud Correspondence</p>
           <div className="social-tray">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="tray-link"><InstagramIcon /></a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="tray-link" title="Follow us on Instagram"><InstagramIcon /></a>
           </div>
         </div>
       </footer>
