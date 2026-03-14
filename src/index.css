@@ -142,6 +142,36 @@ body {
 .p-name { font-size: 0.9rem; font-weight: 700; }
 .p-email { font-size: 0.7rem; opacity: 0.6; }
 
+.popover-links { margin-top: 0.5rem; }
+
+.popover-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: 0.2s;
+}
+
+.popover-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.logout-link {
+  color: #ff4d4d; /* Subtle red for Sign Out */
+}
+
+.logout-link:hover {
+  background: rgba(255, 77, 77, 0.1);
+}
+
 /* Centered Tabs Toggle! */
 .view-selector-container {
   padding: 1.5rem 0;
@@ -255,6 +285,27 @@ input:focus, select:focus, textarea:focus {
 }
 
 .btn-solid:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+.btn-ghost {
+  background: var(--glass-fx);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  padding: 0.9rem 2rem; /* Matches btn-solid */
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: 0.2s;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
 
 /* Empty Preview State */
 .empty-preview-state {
