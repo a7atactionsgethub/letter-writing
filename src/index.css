@@ -579,6 +579,80 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
+/* Dashboard Footer */
+.app-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  padding-bottom: 2rem;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.copyright {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.footer-right {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.social-link {
+  color: var(--text-muted);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-link:hover {
+  color: var(--primary);
+  transform: translateY(-3px) scale(1.1);
+  filter: drop-shadow(0 0 8px var(--primary-glow));
+}
+
+/* Redesign Tweaks for Header */
+.user-name-label {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+}
+
+/* Final CSS Polish */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 @media (max-width: 480px) {
   .dashboard-layout {
     padding: 0.75rem;
@@ -592,7 +666,7 @@ input:focus, select:focus, textarea:focus {
 
   .letter-paper {
     padding: 2.5rem 1.25rem;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .action-btn {
