@@ -1,4 +1,4 @@
-import { InstagramIcon } from './Icons';
+import { InstagramIcon, LinkedInIcon } from './Icons';
 
 export const Footer = () => (
   <footer className="compact-footer">
@@ -8,9 +8,13 @@ export const Footer = () => (
         <p className="credit-text">Designed by <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer">A7 Visuals</a></p>
       </div>
       <div className="footer-right-actions">
-        <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer" className="insta-link">
+        <a href="https://www.linkedin.com/in/aswina72010" target="_blank" rel="noopener noreferrer" className="social-link linkedin">
+          <LinkedInIcon />
+          <span>LinkedIn</span>
+        </a>
+        <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer" className="social-link insta">
           <InstagramIcon />
-          <span>@a7_visuals</span>
+          <span>Instagram</span>
         </a>
       </div>
     </div>

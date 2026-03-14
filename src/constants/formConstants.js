@@ -1,33 +1,33 @@
 export const SUBJECT_OPTIONS = {
   apology: [
-    "Late arrival to Office", 
-    "Late arrival to School", 
-    "Late arrival to College", 
-    "Missing an important deadline", 
-    "Inappropriate behavior", 
-    "Errors in submitted work/assignment", 
+    "late arrival to the office", 
+    "late arrival to school", 
+    "late arrival to college", 
+    "missing an important deadline", 
+    "inappropriate behavior", 
+    "errors in my submitted work/assignment", 
     "Custom..."
   ],
   request: [
-    "Leave of absence (Office)", 
-    "Leave of absence (School/College)", 
-    "Request for recommendation letter", 
-    "Meeting appointment request", 
-    "Resource/Equipment request", 
+    "a leave of absence from the office", 
+    "a leave of absence from school/college", 
+    "a formal recommendation letter", 
+    "a meeting appointment", 
+    "a resource/equipment request", 
     "Custom..."
   ],
   complaint: [
-    "Service delay complaint", 
-    "Poor quality of products", 
-    "Inadequate facilities", 
-    "Staff behavior issue", 
+    "a significant delay in service", 
+    "the poor quality of products received", 
+    "inadequate facilities provided", 
+    "an issue with staff behavior", 
     "Custom..."
   ],
   thanks: [
-    "Appreciation for guidance", 
-    "Thank you for the opportunity", 
-    "Acknowledgment of support", 
-    "Personal thank you note", 
+    "your invaluable guidance", 
+    "the professional opportunity provided", 
+    "your continued support", 
+    "your kind assistance", 
     "Custom..."
   ]
 };
