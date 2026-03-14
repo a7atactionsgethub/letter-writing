@@ -68,7 +68,7 @@ export const Auth = ({ isLogin, onToggleMode }) => {
 
   return (
     <div className="glass-card auth-card">
-      <h2 style={{fontSize: '2.5rem', marginBottom: '0.5rem', fontWeight: 800, textAlign: 'center'}}>
+      <h2 className="auth-title">
         {isLogin ? 'Welcome Back' : 'Create Account'}
       </h2>
       <p className="subtitle">
@@ -133,7 +133,7 @@ export const Auth = ({ isLogin, onToggleMode }) => {
           </div>
         )}
 
-        <button type="submit" className="primary-btn" disabled={loading} style={{width: '100%', marginTop: '0.5rem'}}>
+        <button type="submit" className="primary-btn" disabled={loading}>
           {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
         </button>
       </form>
@@ -145,20 +145,11 @@ export const Auth = ({ isLogin, onToggleMode }) => {
         Continue with Google
       </button>
 
-      <p className="auth-footer" style={{marginTop: '2.5rem', textAlign: 'center'}}>
+      <p className="auth-footer">
         {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
         <button 
           type="button"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--primary)',
-            fontWeight: 800,
-            cursor: 'pointer',
-            padding: '0.5rem',
-            fontSize: 'inherit',
-            textDecoration: 'underline'
-          }}
+          className="auth-link-btn"
           onClick={onToggleMode}
         >
           {isLogin ? 'Create one now' : 'Sign in here'}
