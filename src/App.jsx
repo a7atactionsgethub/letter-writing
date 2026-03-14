@@ -42,6 +42,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLogin, setIsLogin] = useState(true);
+  const [activeTab, setActiveTab] = useState('edit'); // 'edit' or 'preview'
   const [savedLetters, setSavedLetters] = useState([]);
   const [formData, setFormData] = useState({
     senderName: '',
@@ -138,6 +139,9 @@ function App() {
     const { content, createdAt, userId, id, ...rest } = letter;
     setFormData(rest);
     setGeneratedLetter(content);
+    if (window.innerWidth < 1100) {
+      setActiveTab('preview');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -152,6 +156,22 @@ function App() {
 
   return (
     <div className="dashboard-layout">
+      {/* Mobile Tab Bar */}
+      <div className="mobile-tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'edit' ? 'active' : ''}`}
+          onClick={() => setActiveTab('edit')}
+        >
+          ✏️ Editor
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'preview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('preview')}
+        >
+          📄 Preview
+        </button>
+      </div>
+
       <header className="app-header">
         <div className="logo-section">
           <span className="logo-icon">📝</span>
@@ -173,7 +193,7 @@ function App() {
       </header>
 
       <main className="main-content">
-        <div className="split-grid">
+        <div className={`split-grid mobile-active-${activeTab}`}>
           {/* Left Column: Form Section */}
           <section className="scroll-panel form-panel">
             <div className="panel-header">
@@ -231,8 +251,11 @@ function App() {
               </div>
 
               <div className="panel-actions">
-                <button className="action-btn primary" onClick={generateLetter}>
-                   ✨ Refresh Preview
+                <button className="action-btn primary" onClick={() => {
+                  generateLetter();
+                  if (window.innerWidth < 1100) setActiveTab('preview');
+                }}>
+                   ✨ Update & View Preview
                 </button>
                 {generatedLetter && (
                   <button className="action-btn secondary" onClick={saveLetter}>
