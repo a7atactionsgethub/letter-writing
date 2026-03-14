@@ -287,6 +287,33 @@ body {
   filter: brightness(1.2);
 }
 
+.password-toggle-btn {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+  color: var(--accent-primary);
+}
+
+.auth-error {
+  background: rgba(239, 68, 68, 0.1);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #ef4444;
+}
+
 .auth-footer {
   margin-top: 2rem;
   text-align: center;

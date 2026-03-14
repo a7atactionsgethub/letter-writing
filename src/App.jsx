@@ -13,7 +13,8 @@ import {
   serverTimestamp 
 } from 'firebase/firestore'
 
-import { Auth } from './components/Auth'
+import { LoginPage } from './components/LoginPage'
+import { SignupPage } from './components/SignupPage'
 import { templates } from './constants/templates'
 import { SUBJECT_OPTIONS, CATEGORIES } from './constants/formConstants'
 import { Navbar } from './components/Navbar'
@@ -26,7 +27,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState({ preferredName: '' });
   const [loading, setLoading] = useState(true);
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState('edit'); 
@@ -204,16 +205,11 @@ function App() {
     </div>
   );
 
-  if (!user) return (
-    <div className="app-root auth-page-layout">
-      <div className="app-bg-mesh"></div>
-      <div className="glow-orb" style={{ top: '10%', left: '10%' }}></div>
-      <div className="glow-orb" style={{ bottom: '10%', right: '10%', opacity: 0.2 }}></div>
-      <div className="auth-container">
-        <Auth isLogin={isLogin} onToggleMode={() => setIsLogin(!isLogin)} />
-      </div>
-    </div>
-  );
+  if (!user) {
+    return authMode === 'login' 
+      ? <LoginPage onSwitchToSignup={() => setAuthMode('signup')} /> 
+      : <SignupPage onSwitchToLogin={() => setAuthMode('login')} />;
+  }
 
   return (
     <div className="app-root">
