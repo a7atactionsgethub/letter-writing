@@ -23,7 +23,7 @@ export const CustomSelect = ({ id, value, onChange, options, className = "", dis
         onKeyDown={(e) => e.key === 'Enter' && setIsOpen(!isOpen)}
       >
         <span className="selected-value">{displayValue || value || "Select Option"}</span>
-        <svg className={`chevron ${isOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+        <svg className={`chevron-select ${isOpen ? 'rotate' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </div>

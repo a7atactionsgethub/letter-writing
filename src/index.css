@@ -45,6 +45,28 @@ body {
   min-height: 100vh;
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(129, 140, 248, 0.2);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(129, 140, 248, 0.4);
+  background-clip: content-box;
+}
+
 /* Background "Spice" - Mesh Gradients */
 .app-bg-mesh {
   position: fixed;
@@ -325,7 +347,12 @@ body {
   margin-bottom: 2.5rem;
   box-shadow: var(--shadow-lux);
   transition: transform 0.3s ease;
+  position: relative;
 }
+
+.form-section:nth-child(1) { z-index: 30; }
+.form-section:nth-child(2) { z-index: 20; }
+.form-section:nth-child(3) { z-index: 10; }
 
 .section-title { margin-bottom: 2rem; }
 .section-title h2 { 
@@ -350,7 +377,7 @@ body {
   letter-spacing: 0.08em; 
 }
 
-.split-input { display: grid; grid-template-columns: 100px 1fr; gap: 0.7rem; }
+.split-input { display: grid; grid-template-columns: 140px 1fr; gap: 0.7rem; }
 
 input, textarea {
   background: rgba(0, 0, 0, 0.25);
@@ -417,36 +444,91 @@ input:focus, textarea:focus {
 }
 
 /* Custom Select Spicy */
+.custom-select-container {
+  position: relative;
+  width: 100%;
+}
+
 .custom-select-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-glass);
   border-radius: 14px;
   padding: 1rem 1.25rem;
   min-height: 52px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
 }
 
 .custom-select-trigger:hover, .custom-select-trigger.active {
-  background: rgba(0,0,0,0.4);
+  background: rgba(255, 255, 255, 0.05);
   border-color: var(--accent-primary);
 }
 
+.selected-value {
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 1rem;
+}
+
+.chevron-select {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  opacity: 0.6;
+}
+
+.chevron-select.rotate {
+  transform: rotate(180deg);
+}
+
 .custom-select-options {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  min-width: 220px;
   background: rgba(15, 17, 26, 0.98);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(25px);
+  border: 1px solid var(--border-glass);
   border-radius: 18px;
   padding: 0.5rem;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: dropdownFade 0.2s ease;
+}
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .custom-select-option {
   padding: 0.8rem 1.1rem;
   border-radius: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85); /* Brighter for better visibility */
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .custom-select-option:hover {
-  background: rgba(129, 140, 248, 0.1);
-  color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: white;
+}
+
+.custom-select-option.selected {
+  background: rgba(129, 140, 248, 0.2);
+  color: white;
 }
 
 .custom-select-option.selected {
@@ -664,11 +746,25 @@ input:focus, textarea:focus {
   .view-selector { width: 95%; }
   .selector-tab { padding: 0.6rem 1rem; flex: 1; text-align: center; }
 
-  .footer-content-bar { flex-direction: column; gap: 1rem; text-align: center; }
-  .footer-left-info { flex-direction: column; gap: 0.5rem; }
+  .footer-content-bar { 
+    flex-direction: row; 
+    justify-content: space-between; 
+    gap: 0.5rem; 
+    align-items: center;
+  }
+  .footer-left-info { flex-direction: row; gap: 0.5rem; align-items: center; }
+  .footer-left-info p { font-size: 0.6rem; opacity: 0.8; }
+  .credit-text, .footer-left-info p:first-child { display: none; } /* Hide copyright/design by on mobile to save space */
+  .footer-left-info::before { content: "LGP © 2026"; font-size: 0.6rem; font-weight: 800; color: var(--accent-primary); }
 
-  .letter-grid-wrapper { flex-direction: column; gap: 2rem; }
+  .compact-footer { padding: 0.5rem 1rem; }
+  .insta-link { padding: 0.35rem 0.6rem; font-size: 0.65rem; border-radius: 8px; }
+  .insta-link span { display: none; } /* Hide handle text on mobile icon is enough */
+  .workspace { padding: 0 1rem 5rem; }
+
+  .letter-grid-wrapper { flex-direction: column; gap: 1.5rem; }
   .side-divider { display: none; }
-  .form-actions-pretty { flex-direction: column; width: 100%; }
-  .form-actions-pretty button { width: 100%; }
+  .form-section { padding: 1.25rem; margin-bottom: 1.5rem; border-radius: 20px; }
+  .form-actions-pretty { flex-direction: column; width: 100%; gap: 0.8rem; margin-top: 1.5rem; }
+  .form-actions-pretty button { width: 100%; padding: 0.8rem; font-size: 0.9rem; }
 }
