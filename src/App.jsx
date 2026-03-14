@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { auth, db } from './firebase'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  onSnapshot, 
-  orderBy, 
-  serverTimestamp 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+  serverTimestamp
 } from 'firebase/firestore'
 import { Auth } from './components/Auth'
 import { templates } from './constants/templates'
@@ -127,7 +127,7 @@ function App() {
       return;
     }
     const q = query(
-      collection(db, 'letters'), 
+      collection(db, 'letters'),
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
@@ -140,12 +140,12 @@ function App() {
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData(prev => {
-        const newData = { ...prev, [id]: value };
-        // If letter type changes, reset the reason to the first common one
-        if (id === 'letterType') {
-            newData.reason = SUBJECT_OPTIONS[value][0];
-        }
-        return newData;
+      const newData = { ...prev, [id]: value };
+      // If letter type changes, reset the reason to the first common one
+      if (id === 'letterType') {
+        newData.reason = SUBJECT_OPTIONS[value][0];
+      }
+      return newData;
     });
   };
 
@@ -198,7 +198,7 @@ function App() {
 
   const loadLetter = (letter) => {
     const { content, createdAt, userId, id, ...rest } = letter;
-    setFormData(prev => ({...prev, ...rest}));
+    setFormData(prev => ({ ...prev, ...rest }));
     setGeneratedLetter(content);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -216,29 +216,28 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="logo-section">
-          <span className="logo-icon">📝</span>
           <div>
             <h1>Letter Generator Pro</h1>
             <p className="tagline">Professional correspondence, simplified.</p>
           </div>
         </div>
-        
+
         <div className="header-right" ref={menuRef}>
           <button className={`user-btn ${showUserMenu ? 'active' : ''}`} onClick={() => setShowUserMenu(!showUserMenu)}>
             <div className="avatar-mini">{(user.displayName || user.email)[0].toUpperCase()}</div>
             <span className="user-label">{user.displayName || user.email.split('@')[0]}</span>
             <svg className={`chevron ${showUserMenu ? 'up' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
-          
+
           {showUserMenu && (
             <div className="menu-dropdown">
               <div className="dropdown-header">
                 <div className="user-info">
-                   <div className="avatar-large">{(user.displayName || user.email)[0].toUpperCase()}</div>
-                   <div className="user-details">
-                      <p className="user-name-text">{user.displayName || user.email.split('@')[0]}</p>
-                      <p className="user-email-text">{user.email}</p>
-                   </div>
+                  <div className="avatar-large">{(user.displayName || user.email)[0].toUpperCase()}</div>
+                  <div className="user-details">
+                    <p className="user-name-text">{user.displayName || user.email.split('@')[0]}</p>
+                    <p className="user-email-text">{user.email}</p>
+                  </div>
                 </div>
               </div>
               <div className="dropdown-links">
@@ -273,23 +272,23 @@ function App() {
               <input type="date" id="letterDate" value={formData.letterDate} onChange={handleChange} />
             </div>
             <div className="input-group">
-                <label>Subject / Reason</label>
-                <select id="reason" value={formData.reason} onChange={handleChange}>
-                    {SUBJECT_OPTIONS[formData.letterType].map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                </select>
+              <label>Subject / Reason</label>
+              <select id="reason" value={formData.reason} onChange={handleChange}>
+                {SUBJECT_OPTIONS[formData.letterType].map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
             </div>
           </div>
           {formData.reason === 'Custom...' && (
-              <div className="input-group mt-1">
-                  <input 
-                    type="text" 
-                    id="customReason" 
-                    placeholder="Type your custom subject here..." 
-                    onChange={(e) => setFormData(prev => ({...prev, reason: e.target.value}))}
-                  />
-              </div>
+            <div className="input-group mt-1">
+              <input
+                type="text"
+                id="customReason"
+                placeholder="Type your custom subject here..."
+                onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+              />
+            </div>
           )}
         </section>
 
@@ -307,10 +306,10 @@ function App() {
             <div className="input-group">
               <label>Recipient Title & Name</label>
               <div className="title-name-group">
-                  <select id="recipientTitle" value={formData.recipientTitle} onChange={handleChange}>
-                      {TITLES.map(title => <option key={title} value={title}>{title}</option>)}
-                  </select>
-                  <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="John Doe" />
+                <select id="recipientTitle" value={formData.recipientTitle} onChange={handleChange}>
+                  {TITLES.map(title => <option key={title} value={title}>{title}</option>)}
+                </select>
+                <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="John Doe" />
               </div>
             </div>
             <div className="input-group">
