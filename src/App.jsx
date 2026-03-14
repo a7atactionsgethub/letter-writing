@@ -326,7 +326,7 @@ function App() {
             </div>
           </div>
           <div className="action-row">
-            <button className="btn-primary" onClick={generateLetter}>✨ Update Preview</button>
+            <button className="btn-primary" onClick={generateLetter}>Update Preview</button>
             {generatedLetter && (
               <button className="btn-secondary" onClick={saveLetter}><SaveIcon /> Save to Cloud</button>
             )}
@@ -375,9 +375,15 @@ function App() {
 
       <footer className="professional-footer">
         <div className="footer-wrap">
-          <p>© 2026 Letter Generator Pro • Secure Cloud Correspondence</p>
+          <div className="footer-left">
+            <p>© 2026 Letter Generator Pro • Secure Cloud Correspondence</p>
+            <p className="attribution">Designed & Developed by <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer">A7 Visuals</a></p>
+          </div>
           <div className="social-tray">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="tray-link" title="Follow us on Instagram"><InstagramIcon /></a>
+            <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer" className="tray-link" title="Follow A7 Visuals on Instagram">
+              <InstagramIcon />
+              <span className="social-label">@a7_visuals</span>
+            </a>
           </div>
         </div>
       </footer>
