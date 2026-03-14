@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { auth, db } from './firebase'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { 
@@ -31,10 +31,24 @@ const CopyIcon = () => (
 );
 
 const LogoutIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
     <polyline points="16 17 21 12 16 7" />
     <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const InstagramIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
+const TwitterIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
   </svg>
 );
 
@@ -42,7 +56,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLogin, setIsLogin] = useState(true);
-  const [activeTab, setActiveTab] = useState('edit'); // 'edit' or 'preview'
+  const [activeTab, setActiveTab] = useState('edit');
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [savedLetters, setSavedLetters] = useState([]);
   const [formData, setFormData] = useState({
     senderName: '',
@@ -56,6 +71,7 @@ function App() {
   });
 
   const [generatedLetter, setGeneratedLetter] = useState('');
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -66,6 +82,16 @@ function App() {
       }
     });
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -139,9 +165,7 @@ function App() {
     const { content, createdAt, userId, id, ...rest } = letter;
     setFormData(rest);
     setGeneratedLetter(content);
-    if (window.innerWidth < 1100) {
-      setActiveTab('preview');
-    }
+    if (window.innerWidth < 1100) setActiveTab('preview');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -158,18 +182,8 @@ function App() {
     <div className="dashboard-layout">
       {/* Mobile Tab Bar */}
       <div className="mobile-tabs">
-        <button 
-          className={`tab-btn ${activeTab === 'edit' ? 'active' : ''}`}
-          onClick={() => setActiveTab('edit')}
-        >
-          ✏️ Editor
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'preview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('preview')}
-        >
-          📄 Preview
-        </button>
+        <button className={`tab-btn ${activeTab === 'edit' ? 'active' : ''}`} onClick={() => setActiveTab('edit')}>✏️ Editor</button>
+        <button className={`tab-btn ${activeTab === 'preview' ? 'active' : ''}`} onClick={() => setActiveTab('preview')}>📄 Preview</button>
       </div>
 
       <header className="app-header">
@@ -181,14 +195,23 @@ function App() {
           </div>
         </div>
         
-        <div className="header-actions">
-          <div className="user-pill">
+        <div className="header-actions" ref={menuRef}>
+          <button className="user-profile-trigger" onClick={() => setShowUserMenu(!showUserMenu)}>
             <div className="mini-avatar">{(user.displayName || user.email)[0].toUpperCase()}</div>
-            <span className="user-name">{user.displayName || user.email.split('@')[0]}</span>
-          </div>
-          <button className="icon-btn logout-btn" onClick={() => signOut(auth)} title="Logout">
-            <LogoutIcon />
+            <span className="user-name-label">{user.displayName || user.email.split('@')[0]}</span>
+            <svg className={`chevron ${showUserMenu ? 'up' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
+          
+          {showUserMenu && (
+            <div className="user-dropdown-menu">
+              <div className="dropdown-header">
+                <p className="dropdown-email">{user.email}</p>
+              </div>
+              <button className="dropdown-item logout" onClick={() => signOut(auth)}>
+                <LogoutIcon /> Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -202,11 +225,9 @@ function App() {
             </div>
 
             <div className="form-container">
-              <div className="input-row">
-                <div className="input-group">
-                  <label>Your Full Name</label>
-                  <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="e.g. Rajesh Kumar" />
-                </div>
+              <div className="input-group">
+                <label>Your Full Name</label>
+                <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="e.g. Rajesh Kumar" />
               </div>
 
               <div className="input-group">
@@ -217,7 +238,7 @@ function App() {
               <div className="grid-2">
                 <div className="input-group">
                   <label>Recipient Name/Title</label>
-                  <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="e.g. The Principal / Mr. Sharma" />
+                  <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="e.g. Principal / Mr. Sharma" />
                 </div>
                 <div className="input-group">
                   <label>Date</label>
@@ -242,30 +263,22 @@ function App() {
 
               <div className="input-group">
                 <label>Subject / Reason</label>
-                <input type="text" id="reason" value={formData.reason} onChange={handleChange} placeholder="e.g. regarding sick leave / apology for delay" />
+                <input type="text" id="reason" value={formData.reason} onChange={handleChange} placeholder="e.g. regarding sick leave" />
               </div>
 
               <div className="input-group">
                 <label>Additional Context (Optional)</label>
-                <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Provide specific details to personalize the tone..." />
+                <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Personalize the tone..." />
               </div>
 
               <div className="panel-actions">
-                <button className="action-btn primary" onClick={() => {
-                  generateLetter();
-                  if (window.innerWidth < 1100) setActiveTab('preview');
-                }}>
-                   ✨ Update & View Preview
-                </button>
+                <button className="action-btn primary" onClick={() => { generateLetter(); if (window.innerWidth < 1100) setActiveTab('preview'); }}>✨ Update & View Preview</button>
                 {generatedLetter && (
-                  <button className="action-btn secondary" onClick={saveLetter}>
-                    <SaveIcon /> Store in Cloud
-                  </button>
+                  <button className="action-btn secondary" onClick={saveLetter}><SaveIcon /> Store in Cloud</button>
                 )}
               </div>
             </div>
 
-            {/* History Section Integrated in Left Column */}
             {savedLetters.length > 0 && (
               <div className="library-section">
                 <h3>Cloud Library</h3>
@@ -287,33 +300,42 @@ function App() {
             <div className="panel-header flex-header">
               <h2>Live Preview</h2>
               {generatedLetter && (
-                <button className="copy-action-btn" onClick={() => {
-                  navigator.clipboard.writeText(generatedLetter);
-                  alert('Copied to clipboard!');
-                }}>
-                  <CopyIcon /> Copy
-                </button>
+                <button className="copy-action-btn" onClick={() => { navigator.clipboard.writeText(generatedLetter); alert('Copied!'); }}><CopyIcon /> Copy</button>
               )}
             </div>
 
             {!generatedLetter ? (
               <div className="empty-preview">
                 <div className="empty-icon">📭</div>
-                <p>Fill in the required fields to see your professional letter appear here.</p>
+                <p>Fill in the required fields to generate your letter.</p>
               </div>
             ) : (
               <div className="letter-paper-outer">
                 <div className="letter-paper">
                   <div className="paper-texture"></div>
-                  <div className="letter-content">
-                    {generatedLetter}
-                  </div>
+                  <div className="letter-content">{generatedLetter}</div>
                 </div>
               </div>
             )}
           </section>
         </div>
       </main>
+
+      <footer className="app-footer">
+        <div className="footer-content">
+          <div className="footer-left">
+            <p className="copyright">© 2026 Indian Letter Gen. All rights reserved.</p>
+          </div>
+          <div className="footer-right">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-link" title="Instagram">
+              <InstagramIcon />
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-link" title="Twitter/X">
+              <TwitterIcon />
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
