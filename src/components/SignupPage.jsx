@@ -32,7 +32,7 @@ export const SignupPage = ({ onSwitchToLogin }) => {
     } catch (err) {
       setError(err.code === 'auth/email-already-in-use' 
         ? "This email is already registered." 
-        : err.message);
+        : "Invalid email or weak password.");
     } finally {
       setLoading(false);
     }

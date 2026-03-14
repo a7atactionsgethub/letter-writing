@@ -7,9 +7,9 @@ export const Footer = () => (
       <div className="footer-left-info">
         <div className="footer-meta">
           <p>© 2026 Letter Generator Pro</p>
+          <div className="footer-meta-dot"></div>
           <span className="version-badge">v{APP_VERSION}</span>
         </div>
-        <p className="credit-text">Designed by <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer">A7 Visuals</a></p>
       </div>
       <div className="footer-right-actions">
         <a href="https://www.linkedin.com/in/aswina72010" target="_blank" rel="noopener noreferrer" className="social-link linkedin">
@@ -18,7 +18,7 @@ export const Footer = () => (
         </a>
         <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer" className="social-link insta">
           <InstagramIcon />
-          <span>Instagram</span>
+          <span>A7 Visuals</span>
         </a>
       </div>
     </div>

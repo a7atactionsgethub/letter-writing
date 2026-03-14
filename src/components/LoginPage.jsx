@@ -30,9 +30,7 @@ export const LoginPage = ({ onSwitchToSignup }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
-      setError(err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password'
-        ? "Invalid email or password."
-        : err.message);
+      setError("Invalid email or password.");
     } finally {
       setLoading(false);
     }
