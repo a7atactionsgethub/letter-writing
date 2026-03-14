@@ -876,6 +876,14 @@ input:focus, textarea:focus, .custom-select-trigger.active {
   .canvas { padding: 1.5rem 0.75rem; background: transparent; box-shadow: none; }
   .sheet { padding: 2rem 1.25rem; min-height: auto; border-radius: 16px; }
 
-  .footer-content-bar { flex-direction: column; gap: 1.25rem; text-align: center; }
-  .footer-left-info { flex-direction: column; gap: 0.5rem; }
+  .footer-content-bar { flex-direction: row; justify-content: space-between; align-items: center; padding: 0 1rem; }
+  .footer-left-info { flex-direction: row; gap: 0.8rem; }
+  .footer-left-info p { font-size: 0.65rem; }
+  .footer-meta { display: flex; align-items: center; gap: 0.5rem; }
+  .version-badge { font-size: 0.6rem; padding: 0.1rem 0.4rem; }
+  .credit-text { display: none; } /* Hide credit on very small screens to save space */
+  
+  .social-link { padding: 0.5rem; border-radius: 50%; width: 34px; height: 34px; justify-content: center; }
+  .social-link span { display: none; }
+  .compact-footer { padding: 0.6rem 0; }
 }
