@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { auth, db } from './firebase'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { 
@@ -11,91 +11,37 @@ import {
   serverTimestamp 
 } from 'firebase/firestore'
 import { Auth } from './components/Auth'
+import { templates } from './constants/templates'
 import './index.css'
 
-const templates = {
-  apology: `{senderName}
-{senderAddress}
+// Icons
+const SaveIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+    <polyline points="17 21 17 13 7 13 7 21" />
+    <polyline points="7 3 7 8 15 8" />
+  </svg>
+);
 
-Date: {date}
+const CopyIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
 
-To,
-{recipientName}
-{recipientAddress}
-
-Subject: Apology for {reason}
-
-Respected {recipientName},
-
-I am writing to sincerely apologize for {reason}. {details} I understand that my actions were inappropriate, and I assure you that I will take care to avoid such incidents in the future.
-
-Thank you for your understanding.
-
-Yours sincerely,
-{senderName}`,
-
-  request: `{senderName}
-{senderAddress}
-
-Date: {date}
-
-To,
-{recipientName}
-{recipientAddress}
-
-Subject: Request regarding {reason}
-
-Respected {recipientName},
-
-I hope this letter finds you well. I am writing to request {reason}. {details} I would greatly appreciate your consideration and look forward to your positive response.
-
-Thank you for your time.
-
-Yours sincerely,
-{senderName}`,
-
-  complaint: `{senderName}
-{senderAddress}
-
-Date: {date}
-
-To,
-{recipientName}
-{recipientAddress}
-
-Subject: Complaint about {reason}
-
-Respected {recipientName},
-
-I am writing to express my disappointment regarding {reason}. {details} I kindly request that you address this matter at your earliest convenience.
-
-Thank you for your attention.
-
-Yours sincerely,
-{senderName}`,
-
-  thanks: `{senderName}
-{senderAddress}
-
-Date: {date}
-
-To,
-{recipientName}
-{recipientAddress}
-
-Subject: Thank you for {reason}
-
-Respected {recipientName},
-
-I am writing to thank you for {reason}. {details} Your kindness and support mean a great deal to me.
-
-With appreciation,
-{senderName}`
-};
+const LogoutIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLogin, setIsLogin] = useState(true);
   const [savedLetters, setSavedLetters] = useState([]);
   const [formData, setFormData] = useState({
     senderName: '',
@@ -110,13 +56,10 @@ function App() {
 
   const [generatedLetter, setGeneratedLetter] = useState('');
 
-  // Handle Auth State
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-      
-      // Prefill sender name from user profile if available
       if (currentUser && !formData.senderName) {
         setFormData(prev => ({ ...prev, senderName: currentUser.displayName || '' }));
       }
@@ -124,24 +67,19 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch Saved Letters
   useEffect(() => {
-    if (!user) return;
-
+    if (!user) {
+      setSavedLetters([]);
+      return;
+    }
     const q = query(
       collection(db, 'letters'), 
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const letters = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setSavedLetters(letters);
+      setSavedLetters(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
-
     return () => unsubscribe();
   }, [user]);
 
@@ -156,13 +94,9 @@ function App() {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
-  const generateLetter = () => {
+  const generateLetter = useCallback(() => {
     const { senderName, senderAddress, recipientName, recipientAddress, letterDate, letterType, reason, details } = formData;
-
-    if (!senderName || !senderAddress || !recipientName || !recipientAddress || !reason) {
-      alert('Please fill in all required fields (marked with *).');
-      return;
-    }
+    if (!senderName || !senderAddress || !recipientName || !recipientAddress || !reason) return;
 
     let template = templates[letterType] || templates.apology;
     const formattedDate = formatDate(letterDate);
@@ -179,15 +113,14 @@ function App() {
 
     letter = letter.replace(/\n{3,}/g, '\n\n');
     setGeneratedLetter(letter);
-  };
+  }, [formData]);
+
+  useEffect(() => {
+    generateLetter();
+  }, [generateLetter]);
 
   const saveLetter = async () => {
-    if (!user) return;
-    if (!generatedLetter) {
-      alert('Generate a letter first!');
-      return;
-    }
-
+    if (!user || !generatedLetter) return alert('Please fill in all details first!');
     try {
       await addDoc(collection(db, 'letters'), {
         ...formData,
@@ -197,8 +130,7 @@ function App() {
       });
       alert('Letter saved successfully!');
     } catch (err) {
-      console.error(err);
-      alert('Error saving letter: ' + err.message);
+      alert('Could not save letter. Ensure Firestore is enabled.');
     }
   };
 
@@ -209,126 +141,157 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const copyToClipboard = () => {
-    if (generatedLetter) {
-      navigator.clipboard.writeText(generatedLetter)
-        .then(() => alert('Letter copied to clipboard!'))
-        .catch(() => alert('Failed to copy.'));
-    }
-  };
-
-  const handleLogout = () => signOut(auth);
-
   if (loading) return (
-    <div className="glass-card" style={{textAlign: 'center', padding: '5rem'}}>
-      <div className="subtitle">Loading session...</div>
+    <div className="app-loading">
+      <div className="loader"></div>
+      <p>Syncing your profile...</p>
     </div>
   );
 
-  if (!user) return <Auth />;
+  if (!user) return <Auth isLogin={isLogin} onToggleMode={() => setIsLogin(!isLogin)} />;
 
   return (
-    <>
-      <div className="user-nav">
-        <div className="user-info">
-          <div className="avatar">{user.email[0].toUpperCase()}</div>
+    <div className="dashboard-layout">
+      <header className="app-header">
+        <div className="logo-section">
+          <span className="logo-icon">📝</span>
           <div>
-            <div style={{fontWeight: 700}}>{user.displayName || user.email.split('@')[0]}</div>
-            <div style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{user.email}</div>
+            <h1>Indian Letter Gen</h1>
+            <p className="tagline">Professional correspondence, simplified.</p>
           </div>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
-      </div>
-
-      <div className="glass-card">
-        <h1>🇮🇳 Indian Letter Generator</h1>
-        <p className="subtitle">Craft professional letters in seconds with perfect formatting.</p>
-
-        <div className="form-grid">
-          <div className="input-group full-width">
-            <label>Your Full Name *</label>
-            <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="Rajesh Kumar" />
+        
+        <div className="header-actions">
+          <div className="user-pill">
+            <div className="mini-avatar">{(user.displayName || user.email)[0].toUpperCase()}</div>
+            <span className="user-name">{user.displayName || user.email.split('@')[0]}</span>
           </div>
-          <div className="input-group full-width">
-            <label>Your Address *</label>
-            <textarea id="senderAddress" rows="2" value={formData.senderAddress} onChange={handleChange} placeholder="House No., Street, City, PIN" />
-          </div>
-
-          <div className="input-group full-width">
-            <label>Recipient Name *</label>
-            <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="Mr. Sharma" />
-          </div>
-          <div className="input-group full-width">
-            <label>Recipient Address *</label>
-            <textarea id="recipientAddress" rows="2" value={formData.recipientAddress} onChange={handleChange} placeholder="Office/School, Address" />
-          </div>
-
-          <div className="input-group">
-            <label>Date *</label>
-            <input type="date" id="letterDate" value={formData.letterDate} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>Letter Type *</label>
-            <select id="letterType" value={formData.letterType} onChange={handleChange}>
-              <option value="apology">Apology</option>
-              <option value="request">Request</option>
-              <option value="complaint">Complaint</option>
-              <option value="thanks">Thank You</option>
-            </select>
-          </div>
-
-          <div className="input-group full-width">
-            <label>Subject / Reason *</label>
-            <input type="text" id="reason" value={formData.reason} onChange={handleChange} placeholder="e.g., Not wearing shoes in school" />
-          </div>
-
-          <div className="input-group full-width">
-            <label>Additional details (optional)</label>
-            <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Explain briefly..." />
-          </div>
+          <button className="icon-btn logout-btn" onClick={() => signOut(auth)} title="Logout">
+            <LogoutIcon />
+          </button>
         </div>
+      </header>
 
-        <div style={{display: 'flex', gap: '1rem'}}>
-          <button className="primary-btn" onClick={generateLetter}>📄 Generate Letter</button>
-          {generatedLetter && (
-            <button className="primary-btn" style={{background: 'var(--card-bg)', border: '1px solid var(--primary)'}} onClick={saveLetter}>
-              💾 Save to Cloud
-            </button>
-          )}
-        </div>
-
-        {generatedLetter && (
-          <div className="output-container">
-            <div className="output-header">
-              <h3>Preview Your Letter</h3>
-              <button className="copy-btn" onClick={copyToClipboard}>
-                📋 Copy to Clipboard
-              </button>
+      <main className="main-content">
+        <div className="split-grid">
+          {/* Left Column: Form Section */}
+          <section className="scroll-panel form-panel">
+            <div className="panel-header">
+              <h2>Draft Details</h2>
+              <p>Fill in the placeholders to generate your letter.</p>
             </div>
-            <div className="letter-canvas">
-              {generatedLetter}
-            </div>
-          </div>
-        )}
-      </div>
 
-      {savedLetters.length > 0 && (
-        <div className="history-card">
-          <h3>Your Saved Letters</h3>
-          <div className="history-list">
-            {savedLetters.map(letter => (
-              <div key={letter.id} className="history-item" onClick={() => loadLetter(letter)}>
-                <div className="history-meta">
-                  <h4>{letter.letterType.charAt(0).toUpperCase() + letter.letterType.slice(1)}: {letter.reason}</h4>
-                  <span>Sent to {letter.recipientName} on {formatDate(letter.letterDate)}</span>
+            <div className="form-container">
+              <div className="input-row">
+                <div className="input-group">
+                  <label>Your Full Name</label>
+                  <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="e.g. Rajesh Kumar" />
                 </div>
-                <div style={{color: 'var(--primary)', fontWeight: 700}}>Load ➜</div>
               </div>
-            ))}
-          </div>
+
+              <div className="input-group">
+                <label>Your Address</label>
+                <textarea id="senderAddress" rows="2" value={formData.senderAddress} onChange={handleChange} placeholder="House No., Street, City, PIN" />
+              </div>
+
+              <div className="grid-2">
+                <div className="input-group">
+                  <label>Recipient Name/Title</label>
+                  <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="e.g. The Principal / Mr. Sharma" />
+                </div>
+                <div className="input-group">
+                  <label>Date</label>
+                  <input type="date" id="letterDate" value={formData.letterDate} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>Recipient Address</label>
+                <textarea id="recipientAddress" rows="2" value={formData.recipientAddress} onChange={handleChange} placeholder="Office/School Name, Address" />
+              </div>
+
+              <div className="input-group">
+                <label>Template Category</label>
+                <select id="letterType" value={formData.letterType} onChange={handleChange}>
+                  <option value="apology">Apology Letter</option>
+                  <option value="request">Formal Request</option>
+                  <option value="complaint">Complaint Letter</option>
+                  <option value="thanks">Thank You Note</option>
+                </select>
+              </div>
+
+              <div className="input-group">
+                <label>Subject / Reason</label>
+                <input type="text" id="reason" value={formData.reason} onChange={handleChange} placeholder="e.g. regarding sick leave / apology for delay" />
+              </div>
+
+              <div className="input-group">
+                <label>Additional Context (Optional)</label>
+                <textarea id="details" rows="3" value={formData.details} onChange={handleChange} placeholder="Provide specific details to personalize the tone..." />
+              </div>
+
+              <div className="panel-actions">
+                <button className="action-btn primary" onClick={generateLetter}>
+                   ✨ Refresh Preview
+                </button>
+                {generatedLetter && (
+                  <button className="action-btn secondary" onClick={saveLetter}>
+                    <SaveIcon /> Store in Cloud
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* History Section Integrated in Left Column */}
+            {savedLetters.length > 0 && (
+              <div className="library-section">
+                <h3>Cloud Library</h3>
+                <div className="history-grid">
+                  {savedLetters.map(letter => (
+                    <div key={letter.id} className="history-card-mini" onClick={() => loadLetter(letter)}>
+                      <div className="category-tag">{letter.letterType}</div>
+                      <div className="card-title">{letter.reason}</div>
+                      <div className="card-date">{formatDate(letter.letterDate)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Right Column: Preview Panel */}
+          <section className="sticky-panel preview-panel">
+            <div className="panel-header flex-header">
+              <h2>Live Preview</h2>
+              {generatedLetter && (
+                <button className="copy-action-btn" onClick={() => {
+                  navigator.clipboard.writeText(generatedLetter);
+                  alert('Copied to clipboard!');
+                }}>
+                  <CopyIcon /> Copy
+                </button>
+              )}
+            </div>
+
+            {!generatedLetter ? (
+              <div className="empty-preview">
+                <div className="empty-icon">📭</div>
+                <p>Fill in the required fields to see your professional letter appear here.</p>
+              </div>
+            ) : (
+              <div className="letter-paper-outer">
+                <div className="letter-paper">
+                  <div className="paper-texture"></div>
+                  <div className="letter-content">
+                    {generatedLetter}
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
         </div>
-      )}
-    </>
+      </main>
+    </div>
   )
 }
 
