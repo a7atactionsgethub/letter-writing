@@ -1,10 +1,14 @@
 import { InstagramIcon, LinkedInIcon } from './Icons';
+import { APP_VERSION } from '../constants/version';
 
 export const Footer = () => (
   <footer className="compact-footer">
     <div className="footer-content-bar">
       <div className="footer-left-info">
-        <p>© 2026 Letter Generator Pro</p>
+        <div className="footer-meta">
+          <p>© 2026 Letter Generator Pro</p>
+          <span className="version-badge">v{APP_VERSION}</span>
+        </div>
         <p className="credit-text">Designed by <a href="https://www.instagram.com/a7_visuals/" target="_blank" rel="noopener noreferrer">A7 Visuals</a></p>
       </div>
       <div className="footer-right-actions">

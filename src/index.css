@@ -929,6 +929,23 @@ input:focus, textarea:focus, .custom-select-trigger.active {
   font-weight: 600;
 }
 
+.footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.version-badge {
+  background: rgba(129, 140, 248, 0.1);
+  border: 1px solid rgba(129, 140, 248, 0.2);
+  color: var(--accent-primary);
+  padding: 0.15rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
 .credit-text a {
   color: var(--accent-primary);
   text-decoration: none;
