@@ -105,6 +105,7 @@ body {
   justify-content: center;
   align-items: center;
   padding: 2rem;
+  overflow: hidden; /* Prevent body scroll on desktop for auth */
 }
 
 .auth-container {
@@ -328,12 +329,28 @@ body {
 }
 
 @media (max-width: 480px) {
+  .auth-page-layout {
+    padding: 1rem;
+    overflow-y: auto; /* Allow scroll only if absolute necessary on tiny screens */
+  }
   .auth-card {
-    padding: 2.5rem 1.5rem;
+    padding: 2.2rem 1.5rem;
     border-radius: 30px;
   }
   .auth-title {
     font-size: 1.8rem;
+  }
+  .auth-card .subtitle {
+    margin-bottom: 1.5rem;
+  }
+  .auth-form {
+    gap: 1.2rem;
+  }
+  .divider {
+    margin: 1.2rem 0;
+  }
+  .auth-footer {
+    margin-top: 1.5rem;
   }
 }
 
