@@ -4,6 +4,9 @@ import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { 
   collection, 
   addDoc, 
+  setDoc,
+  doc,
+  getDoc,
   query, 
   where, 
   onSnapshot, 
@@ -54,6 +57,13 @@ const InfoIcon = () => (
   </svg>
 );
 
+const SettingsIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+);
+
 const SUBJECT_OPTIONS = {
   apology: ["Late arrival to office/school", "Missing an important deadline", "Inappropriate behavior", "Errors in submitted work", "Custom..."],
   request: ["Leave of absence application", "Request for recommendation letter", "Meeting appointment request", "Resource/Equipment request", "Custom..."],
@@ -63,11 +73,68 @@ const SUBJECT_OPTIONS = {
 
 const TITLES = ["Mr.", "Ms.", "Dr.", "Prof.", "The Principal", "The Manager", "Custom..."];
 
+const CATEGORIES = [
+  { id: 'apology', label: 'Apology Letter' },
+  { id: 'request', label: 'Formal Request' },
+  { id: 'complaint', label: 'Complaint Letter' },
+  { id: 'thanks', label: 'Thank You Note' }
+];
+
+const CustomSelect = ({ id, value, onChange, options, className = "", displayValue }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className={`custom-select-container ${className}`} ref={dropdownRef}>
+      <div 
+        className={`custom-select-trigger ${isOpen ? 'active' : ''}`} 
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="truncate">{displayValue || value}</span>
+        <svg className={`chevron-select ${isOpen ? 'rotate' : ''}`} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      {isOpen && (
+        <div className="custom-select-options">
+          {options.map((opt) => {
+            const isObj = typeof opt === 'object';
+            const optVal = isObj ? opt.id : opt;
+            const optLabel = isObj ? opt.label : opt;
+            return (
+              <div 
+                key={optVal} 
+                className={`custom-select-option ${value === optVal ? 'selected' : ''}`}
+                onClick={() => {
+                  onChange({ target: { id, value: optVal } });
+                  setIsOpen(false);
+                }}
+              >
+                {optLabel}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 function App() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState({ preferredName: '' });
   const [loading, setLoading] = useState(true);
   const [isLogin, setIsLogin] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState('edit'); 
   const [savedLetters, setSavedLetters] = useState([]);
   const [formData, setFormData] = useState({
@@ -85,21 +152,45 @@ function App() {
   const [generatedLetter, setGeneratedLetter] = useState('');
   const menuRef = useRef(null);
 
+  // Auth & Profile Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
-      if (currentUser && !formData.senderName) {
-        setFormData(prev => ({ ...prev, senderName: currentUser.displayName || '' }));
+      if (currentUser) {
+        // Fetch/Listen to Profile
+        const profileRef = doc(db, 'profiles', currentUser.uid);
+        const unsubscribeProfile = onSnapshot(profileRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const profileData = snapshot.data();
+            setProfile(profileData);
+            // Auto-fill senderName if profile loaded and field empty
+            setFormData(prev => {
+              if (!prev.senderName) {
+                return { ...prev, senderName: profileData.preferredName || currentUser.displayName || currentUser.email.split('@')[0] };
+              }
+              return prev;
+            });
+          } else {
+            // No profile yet, use auth data
+            const fallbackName = currentUser.displayName || currentUser.email.split('@')[0];
+            setFormData(prev => !prev.senderName ? { ...prev, senderName: fallbackName } : prev);
+          }
+        });
+        setLoading(false);
+        return () => unsubscribeProfile();
+      } else {
+        setProfile({ preferredName: '' });
+        setLoading(false);
       }
     });
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setShowUserMenu(false);
+        setShowSettings(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -129,6 +220,21 @@ function App() {
       if (id === 'letterType') newData.reason = SUBJECT_OPTIONS[value][0];
       return newData;
     });
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'profiles', user.uid), {
+        preferredName: profile.preferredName,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      alert('Profile updated successfully!');
+      setShowSettings(false);
+    } catch (err) {
+      alert('Error updating profile: ' + err.message);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -193,7 +299,7 @@ function App() {
   const handleManualGenerate = () => {
     const success = generateLetter();
     if (!success) {
-      alert('Missing Information: Please fill in all fields (Names, Addresses, and Subject) to see the preview.');
+      alert('Missing Information: Please fill in all fields to generate a preview.');
     } else {
       setActiveTab('preview');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -221,24 +327,54 @@ function App() {
           <div className="navbar-actions" ref={menuRef}>
             <button className={`profile-pill ${showUserMenu ? 'active' : ''}`} onClick={() => setShowUserMenu(!showUserMenu)}>
               <div className="profile-img">{(user.displayName || user.email)[0].toUpperCase()}</div>
-              <span className="profile-text">{user.displayName || user.email.split('@')[0]}</span>
+              <span className="profile-text">{profile.preferredName || user.displayName || user.email.split('@')[0]}</span>
               <svg className={`chevron-svg ${showUserMenu ? 'rotate' : ''}`} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
             
             {showUserMenu && (
               <div className="popover-menu">
-                <div className="popover-user">
-                  <div className="popover-avatar">{(user.displayName || user.email)[0].toUpperCase()}</div>
-                  <div className="popover-meta">
-                    <p className="p-name">{user.displayName || user.email.split('@')[0]}</p>
-                    <p className="p-email">{user.email}</p>
+                {!showSettings ? (
+                  <>
+                    <div className="popover-user">
+                      <div className="popover-avatar">{(user.displayName || user.email)[0].toUpperCase()}</div>
+                      <div className="popover-meta">
+                        <p className="p-name">{profile.preferredName || user.displayName || user.email.split('@')[0]}</p>
+                        <p className="p-email">{user.email}</p>
+                      </div>
+                    </div>
+                    <div className="popover-links">
+                      <button className="popover-btn" onClick={() => setShowSettings(true)}>
+                        <SettingsIcon /> User Settings
+                      </button>
+                      <button className="popover-btn logout-link" onClick={() => signOut(auth)}>
+                        <LogoutIcon /> Sign Out
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="settings-panel fade-in">
+                    <div className="settings-header">
+                      <button className="back-btn" onClick={() => setShowSettings(false)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        Back
+                      </button>
+                      <h4>Account Settings</h4>
+                    </div>
+                    <form className="settings-form" onSubmit={handleProfileUpdate}>
+                      <div className="control-group">
+                        <label>Preferred Legal Name</label>
+                        <input 
+                          type="text" 
+                          placeholder="Your Full Name" 
+                          value={profile.preferredName}
+                          onChange={(e) => setProfile({ ...profile, preferredName: e.target.value })}
+                        />
+                        <p className="hint-text">This name will be used to auto-fill your letters.</p>
+                      </div>
+                      <button type="submit" className="btn-solid tiny-btn">Update Profile</button>
+                    </form>
                   </div>
-                </div>
-                <div className="popover-links">
-                  <button className="popover-btn logout-link" onClick={() => signOut(auth)}>
-                    <LogoutIcon /> Sign Out
-                  </button>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -274,12 +410,13 @@ function App() {
               <div className="grid-3">
                 <div className="control-group">
                   <label>Category</label>
-                  <select id="letterType" value={formData.letterType} onChange={handleChange}>
-                    <option value="apology">Apology</option>
-                    <option value="request">Request</option>
-                    <option value="complaint">Complaint</option>
-                    <option value="thanks">Thanks</option>
-                  </select>
+                  <CustomSelect 
+                    id="letterType" 
+                    value={formData.letterType} 
+                    displayValue={CATEGORIES.find(c => c.id === formData.letterType)?.label}
+                    options={CATEGORIES} 
+                    onChange={handleChange} 
+                  />
                 </div>
                 <div className="control-group">
                   <label>Date</label>
@@ -287,11 +424,12 @@ function App() {
                 </div>
                 <div className="control-group">
                   <label>Subject</label>
-                  <select id="reason" value={formData.reason} onChange={handleChange}>
-                    {SUBJECT_OPTIONS[formData.letterType].map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                  <CustomSelect 
+                    id="reason" 
+                    value={formData.reason} 
+                    options={SUBJECT_OPTIONS[formData.letterType]} 
+                    onChange={handleChange} 
+                  />
                 </div>
               </div>
               {formData.reason === 'Custom...' && (
@@ -314,14 +452,18 @@ function App() {
               <div className="grid-2">
                 <div className="control-group">
                   <label>Your Name</label>
-                  <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="Rajesh Kumar" />
+                  <input type="text" id="senderName" value={formData.senderName} onChange={handleChange} placeholder="John Doe" />
                 </div>
                 <div className="control-group">
                   <label>Recipient Name</label>
                   <div className="split-input">
-                    <select className="tiny-select" id="recipientTitle" value={formData.recipientTitle} onChange={handleChange}>
-                      {TITLES.map(title => <option key={title} value={title}>{title}</option>)}
-                    </select>
+                    <CustomSelect 
+                      className="tiny-custom-select"
+                      id="recipientTitle" 
+                      value={formData.recipientTitle} 
+                      options={TITLES} 
+                      onChange={handleChange} 
+                    />
                     <input type="text" id="recipientName" value={formData.recipientName} onChange={handleChange} placeholder="Full Name" />
                   </div>
                 </div>
