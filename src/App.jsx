@@ -46,6 +46,14 @@ const InstagramIcon = () => (
   </svg>
 );
 
+const InfoIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="12" y1="16" x2="12" y2="12"></line>
+    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+  </svg>
+);
+
 const SUBJECT_OPTIONS = {
   apology: ["Late arrival to office/school", "Missing an important deadline", "Inappropriate behavior", "Errors in submitted work", "Custom..."],
   request: ["Leave of absence application", "Request for recommendation letter", "Meeting appointment request", "Resource/Equipment request", "Custom..."],
@@ -60,7 +68,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isLogin, setIsLogin] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [activeTab, setActiveTab] = useState('edit'); // 'edit' or 'preview'
+  const [activeTab, setActiveTab] = useState('edit'); 
   const [savedLetters, setSavedLetters] = useState([]);
   const [formData, setFormData] = useState({
     senderName: '',
@@ -131,7 +139,10 @@ function App() {
 
   const generateLetter = useCallback(() => {
     const { senderName, senderAddress, recipientTitle, recipientName, recipientAddress, letterDate, letterType, reason, details } = formData;
-    if (!senderName || !senderAddress || !recipientName || !recipientAddress || !reason) return;
+    if (!senderName || !senderAddress || !recipientName || !recipientAddress || !reason) {
+      setGeneratedLetter('');
+      return false;
+    }
 
     let template = templates[letterType] || templates.apology;
     const formattedDate = formatDate(letterDate);
@@ -149,6 +160,7 @@ function App() {
 
     letter = letter.replace(/\n{3,}/g, '\n\n');
     setGeneratedLetter(letter);
+    return true;
   }, [formData]);
 
   useEffect(() => {
@@ -176,6 +188,16 @@ function App() {
     setGeneratedLetter(content);
     setActiveTab('preview');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleManualGenerate = () => {
+    const success = generateLetter();
+    if (!success) {
+      alert('Missing Information: Please fill in all fields (Names, Addresses, and Subject) to see the preview.');
+    } else {
+      setActiveTab('preview');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   if (loading) return (
@@ -234,11 +256,7 @@ function App() {
           </button>
           <button 
             className={`selector-tab ${activeTab === 'preview' ? 'active' : ''}`} 
-            onClick={() => {
-              generateLetter();
-              setActiveTab('preview');
-            }}
-            disabled={!generatedLetter}
+            onClick={() => setActiveTab('preview')}
           >
             Live Preview
           </button>
@@ -321,10 +339,7 @@ function App() {
                 </div>
               </div>
               <div className="form-actions">
-                <button className="btn-solid" onClick={() => {
-                  generateLetter();
-                  setActiveTab('preview');
-                }}>
+                <button className="btn-solid" onClick={handleManualGenerate}>
                   Generate & Preview
                 </button>
                 {generatedLetter && (
@@ -357,27 +372,40 @@ function App() {
           </div>
         ) : (
           <div className="preview-workspace fade-in">
-            <div className="preview-toolbar">
-              <div className="toolbar-info">
-                <h2>Document Preview</h2>
-                <p>Professional formal formatting applied</p>
-              </div>
-              <button className="btn-action" onClick={() => {
-                navigator.clipboard.writeText(generatedLetter);
-                alert('Copied to clipboard!');
-              }}>
-                <CopyIcon /> Copy Document
-              </button>
-            </div>
-            
-            <div className="canvas">
-              <div className="sheet">
-                <div className="sheet-texture"></div>
-                <div className="sheet-content">
-                  {generatedLetter}
+            {generatedLetter ? (
+              <>
+                <div className="preview-toolbar">
+                  <div className="toolbar-info">
+                    <h2>Document Preview</h2>
+                    <p>Professional formal formatting applied</p>
+                  </div>
+                  <button className="btn-action" onClick={() => {
+                    navigator.clipboard.writeText(generatedLetter);
+                    alert('Copied to clipboard!');
+                  }}>
+                    <CopyIcon /> Copy Document
+                  </button>
                 </div>
+                
+                <div className="canvas">
+                  <div className="sheet">
+                    <div className="sheet-texture"></div>
+                    <div className="sheet-content">
+                      {generatedLetter}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="empty-preview-state">
+                  <div className="empty-info-box">
+                      <InfoIcon />
+                      <h3>No Letter Generated Yet</h3>
+                      <p>Please provide the recipient and sender details in the <b>Edit Mode</b> to generate a preview.</p>
+                      <button className="btn-solid mt-1" onClick={() => setActiveTab('edit')}>Go back to Editor</button>
+                  </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </main>
